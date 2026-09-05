@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "es2025",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    "skipLibCheck": true,
+
+    "forceConsistentCasingInFileNames": true,
+
+    "resolveJsonModule": true,
+    "types": ["node", "aws-lambda","vitest/globals"],
+
+    "isolatedModules": true,
+    "noUncheckedIndexedAccess": true,
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "paths": {
+      "@bootstrap/*": ["./src/bootstrap/*"],
+      "@generated/*": ["./src/generated/*"],
+
+      "@lambdas/*": ["./src/lambdas/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@shared/*": ["./src/shared/*"],
+
+    },
+  },
+  "include": ["src/**/*.ts", "infra/**/*.ts","tests/**/*.ts", "prisma.config.ts", "prisma/seed.ts","prisma/seeds/**/*.ts", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist", "scripts/dev-tools/**"],
+}

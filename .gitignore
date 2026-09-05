@@ -141,3 +141,25 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+
+
+cdk.out
+dist
+cdk.context.json
+.env.localstack
+coverage
+cdk.log
+env.json
+
+docker/.localstack/
+docker/*.log
+docker/scripts
+
+CLAUDE.local.md
