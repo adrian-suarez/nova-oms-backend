@@ -36,11 +36,8 @@ export class NodeLambdaFactory{
             vpc:props.vpc,
             securityGroups:props.securityGroups,
 
-            // 128MB (el mínimo de Lambda) no alcanza para una función que carga Prisma Client +
-            // el motor de queries + jose/bcryptjs + instrumentación de X-Ray — confirmado con un
-            // Runtime.OutOfMemory real en AuthLambda contra RDS Proxy real. 256MB es el default
-            // razonable mínimo recomendado para Lambdas con Prisma; subir a 512 si algún endpoint
-            // sigue quedándose sin memoria.
+            // 128MB (mínimo de Lambda) no alcanza para Prisma + jose/bcryptjs + X-Ray — confirmado
+            // con Runtime.OutOfMemory real en AuthLambda. Subir a 512 si algún endpoint lo necesita.
             memorySize: props.memorySize ?? 256,
             timeout: cdk.Duration.seconds(props.timeout ?? 15), //30
             entry: path.resolve(props.entry),
@@ -51,12 +48,9 @@ export class NodeLambdaFactory{
             },
             tracing:lambda.Tracing.ACTIVE,
 
-            // Mitigación complementaria a RDS Proxy (ADR-0011): limita el techo de invocaciones
-            // concurrentes por Lambda. Configurable por ambiente (LAMBDA_RESERVED_CONCURRENCY en
-            // cdk.json) en vez de fijo en 50 — cuentas AWS nuevas arrancan con una cuota total de
-            // concurrencia mucho más baja que el default de 1000, y reservar 50 por cada una de las
-            // 23 Lambdas puede superarla antes de llegar al mínimo de 10 sin reservar que exige AWS.
-            // Sin el valor en el contexto, no se reserva nada (deploy nunca bloqueado por esto).
+            // Complementa RDS Proxy (ADR-0011). Configurable por ambiente en vez de fijo: cuentas
+            // AWS nuevas pueden tener una cuota de concurrencia total muy baja, y reservar un valor
+            // fijo por cada Lambda puede violar el mínimo de 10 sin reservar que exige AWS.
             reservedConcurrentExecutions: config.LAMBDA_RESERVED_CONCURRENCY,
             depsLockFilePath: path.resolve("pnpm-lock.yaml"),    //building reproducible
             bundling: { 

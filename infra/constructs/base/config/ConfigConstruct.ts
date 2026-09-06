@@ -59,20 +59,16 @@ export class ConfigConstruct extends Construct {
         }),
         generateStringKey: "password",
         passwordLength: 32,
-        // RDS rechaza '/', '@', '"' y espacio en el master password, pero Secrets Manager
-        // los puede generar igual por default — sin esta exclusión el deploy falla al azar
-        // (según si el password generado los incluye o no) con "MasterUserPassword is not
-        // a valid password".
+        // RDS rechaza '/', '@', '"' y espacio en el password, pero Secrets Manager los puede
+        // generar por default — sin esto el deploy falla al azar.
         excludeCharacters: "\"@/\\ ",
       },
     });
 
     this.dbSecret.addRotationSchedule("dbRotation", {
       automaticallyAfter: cdk.Duration.days(30),
-      // functionName explícito y corto: el nombre autogenerado por CDK (prefijo del construct
-      // path + sufijo "-PostgreSQLSingleUser-Lambda") supera el límite de 64 caracteres de
-      // AWS::Lambda::Function y el deploy falla con "Member must have length less than or
-      // equal to 64". No aparece contra LocalStack, solo en el primer deploy a AWS real.
+      // functionName explícito y corto: el nombre autogenerado por CDK supera el límite de 64
+      // caracteres de Lambda y el deploy falla (solo se ve en AWS real, no en LocalStack).
       hostedRotation: secretsmanager.HostedRotation.postgreSqlSingleUser({
         functionName: `novaoms-${env}-db-rotation`,
       }),

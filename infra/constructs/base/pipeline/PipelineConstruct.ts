@@ -27,9 +27,8 @@ export class PipelineConstruct extends Construct {
         const buildProject = new codebuild.PipelineProject(this,"BuildProject",{
             buildSpec: codebuild.BuildSpec.fromSourceFilename("pipeline/buildspecs/build.yml"),
             environment: { buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_5},
-            // Cachea el store de pnpm (fijado a .pnpm-store por .npmrc) entre corridas del mismo
-            // build host — evita descargar todo de cero en cada push. Best-effort: si CodeBuild
-            // asigna un host distinto, simplemente no hay cache hit, no rompe nada.
+            // Cachea el store de pnpm entre corridas del mismo build host — best-effort, no
+            // rompe si CodeBuild asigna un host distinto.
             cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM)
         });
 
@@ -44,11 +43,9 @@ export class PipelineConstruct extends Construct {
             resources:[`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/cdk-*`]
         }));
 
-        // AUTH_PROVIDER no es un valor dinámico ni sensible — ya está en el contexto de CDK al
-        // sintetizar (mismo valor que reciben las Lambdas reales), no hace falta ir a buscarlo a
-        // SSM en runtime. Sin esto, prisma/seed.ts nunca crea usuarios en Cognito aunque
-        // AUTH_PROVIDER=cognito para el resto del stack, porque config.authProvider lee de
-        // process.env y ese env var nunca llegaba a este CodeBuild.
+        // Sin AUTH_PROVIDER acá, el seed nunca crea usuarios en Cognito aunque el resto del
+        // stack use AUTH_PROVIDER=cognito — config.authProvider lee de process.env, y ese env
+        // var nunca llegaba a este CodeBuild.
         const config = this.node.tryGetContext(props.deployEnv);
 
         const migrateProject = new codebuild.PipelineProject(this,"MigrateAndSeedProject",{
@@ -59,20 +56,17 @@ export class PipelineConstruct extends Construct {
             environmentVariables:{
                 DEPLOY_ENV: {value: props.deployEnv},
                 AUTH_PROVIDER: {value: config.AUTH_PROVIDER},
-                // El seed corre fuera de Lambda (CodeBuild), donde APP_ENV nunca llega por
-                // otra vía. Sin él, Config.ts cae en Environment.LOCAL por default y
-                // PrismaClientFactory.ts omite el ssl option contra RDS Proxy — el proxy
-                // corta la conexión sin TLS y Prisma lo reporta como P1010 "access denied"
-                // en vez de un error de TLS explícito.
+                // El seed corre fuera de Lambda; sin APP_ENV, Config.ts cae en LOCAL y omite TLS
+                // contra RDS Proxy — la conexión falla y Prisma lo reporta como P1010 en vez de
+                // un error de TLS explícito.
                 APP_ENV: {value: config.METADATA.APP_ENV},
             },
             cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM)
         });
 
         migrateProject.addToRolePolicy(new iam.PolicyStatement({
-            // CodeBuild resuelve las variables de "parameter-store" del buildspec con la API en
-            // lote (GetParameters, plural) cuando hay más de una — acá hay 4. GetParameter
-            // (singular) por sí solo no alcanza, aunque el nombre sea casi idéntico.
+            // CodeBuild resuelve "parameter-store" con GetParameters (plural) cuando hay más de
+            // una variable — GetParameter (singular) solo no alcanza.
             actions: ["ssm:GetParameter", "ssm:GetParameters"],
             resources: [
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/host`,
@@ -82,7 +76,6 @@ export class PipelineConstruct extends Construct {
             ],
         }));
 
-    
         const dbSecret = secretsmanager.Secret.fromSecretNameV2(this, "DbSecretRef", `novaoms/${props.deployEnv}/db`);
 
         dbSecret.grantRead(migrateProject);
@@ -120,11 +113,10 @@ export class PipelineConstruct extends Construct {
                         new actions.CodeBuildAction({
                             actionName:"CDK_Deploy",
                             project: deployProject,
-                            // El buildspec (deploy.yml) vive en el código fuente, no en el
-                            // artefacto de Build (que solo trae cdk.out/) — CodeBuild busca el
-                            // buildspec en el input PRIMARIO, así que la fuente cruda tiene que
-                            // ser el input principal. El cdk.out sintetizado llega como input
-                            // secundario, accesible en $CODEBUILD_SRC_DIR_BuildOutput.
+                            // deploy.yml vive en el código fuente, no en el artefacto de Build
+                            // (solo trae cdk.out/) — CodeBuild busca el buildspec en el input
+                            // primario, por eso la fuente cruda es el principal y cdk.out llega
+                            // como secundario ($CODEBUILD_SRC_DIR_BuildOutput).
                             input: sourceOutput,
                             extraInputs: [buildOutput]
                         })
