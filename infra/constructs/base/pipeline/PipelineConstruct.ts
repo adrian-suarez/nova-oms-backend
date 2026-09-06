@@ -40,19 +40,31 @@ export class PipelineConstruct extends Construct {
             resources:[`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/cdk-*`]
         }));
 
+        // AUTH_PROVIDER no es un valor dinámico ni sensible — ya está en el contexto de CDK al
+        // sintetizar (mismo valor que reciben las Lambdas reales), no hace falta ir a buscarlo a
+        // SSM en runtime. Sin esto, prisma/seed.ts nunca crea usuarios en Cognito aunque
+        // AUTH_PROVIDER=cognito para el resto del stack, porque config.authProvider lee de
+        // process.env y ese env var nunca llegaba a este CodeBuild.
+        const config = this.node.tryGetContext(props.deployEnv);
+
         const migrateProject = new codebuild.PipelineProject(this,"MigrateAndSeedProject",{
             vpc: props.vpc,
             securityGroups: props.securityGroups,
             buildSpec: codebuild.BuildSpec.fromSourceFilename("pipeline/buildspecs/migrate-and-seed.yml"),
             environment: { buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_5},
-            environmentVariables:{ DEPLOY_ENV: {value: props.deployEnv}}
+            environmentVariables:{
+                DEPLOY_ENV: {value: props.deployEnv},
+                AUTH_PROVIDER: {value: config.AUTH_PROVIDER},
+            }
         });
-        
+
         migrateProject.addToRolePolicy(new iam.PolicyStatement({
             actions: ["ssm:GetParameter"],
             resources: [
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/host`,
-                `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/name`
+                `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/name`,
+                `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/cognito/user_pool_id`,
+                `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/cognito/client_id`
             ],
         }));
 
