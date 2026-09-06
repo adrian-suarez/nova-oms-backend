@@ -1,6 +1,7 @@
 {
   "name": "nova-oms-backend",
   "version": "1.0.0-RC1",
+  "packageManager": "pnpm@11.9.0",
   "description": "Backend serverless de Nova OMS — Clean/Hexagonal Architecture + DDD sobre AWS CDK, con arquitectura orientada a eventos (EventBridge + SNS + SQS, patrón Outbox transaccional) y pipeline de CI/CD propio.",
   "main": "index.js",
   "scripts": {
@@ -47,7 +48,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.9.0",
+      "version": "11.9.0",
       "onFail": "download"
     }
   },
