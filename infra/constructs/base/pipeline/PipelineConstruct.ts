@@ -64,7 +64,10 @@ export class PipelineConstruct extends Construct {
         });
 
         migrateProject.addToRolePolicy(new iam.PolicyStatement({
-            actions: ["ssm:GetParameter"],
+            // CodeBuild resuelve las variables de "parameter-store" del buildspec con la API en
+            // lote (GetParameters, plural) cuando hay más de una — acá hay 4. GetParameter
+            // (singular) por sí solo no alcanza, aunque el nombre sea casi idéntico.
+            actions: ["ssm:GetParameter", "ssm:GetParameters"],
             resources: [
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/host`,
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/db/name`,
