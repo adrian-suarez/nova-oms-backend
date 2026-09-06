@@ -34,7 +34,7 @@ export class OutboxWorkerConstruct extends Construct {
 
         new scheduler.Schedule(this, "ProcessOrdersSchedule", {
             schedule: scheduler.ScheduleExpression.rate(
-                cdk.Duration.minutes(1)
+                cdk.Duration.days(1)
             ),
             target: new targets.LambdaInvoke(this.outboxPublisherLambdaFunction,{
                 retryAttempts: 3
