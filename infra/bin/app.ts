@@ -23,6 +23,7 @@ new PipelineStack(app, "NovaOmsPipelineStack",{
   tags:config.TAGS,
   vpc:apiStack.vpc,
   securityGroups: apiStack.securityGroups,
+  userPool: apiStack.userPool,
   githubConnectionArn: pipeline.GITHUB_CONNECTION_ARN,
   githubOwner: pipeline.GITHUB_OWNER,
   githubRepo: pipeline.GITHUB_REPO,

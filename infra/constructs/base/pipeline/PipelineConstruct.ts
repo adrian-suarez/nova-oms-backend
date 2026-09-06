@@ -6,11 +6,13 @@ import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as cognito from "aws-cdk-lib/aws-cognito";
 
 
 export interface PipelineConstructProps {
     vpc: ec2.Vpc,
     securityGroups: ec2.ISecurityGroup[],
+    userPool: cognito.IUserPool;
     githubConnectionArn: string;
     githubOwner: string;
     githubRepo: string;
@@ -74,6 +76,13 @@ export class PipelineConstruct extends Construct {
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/cognito/user_pool_id`,
                 `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:parameter/novaoms/${props.deployEnv}/cognito/client_id`
             ],
+        }));
+
+        migrateProject.addToRolePolicy(new iam.PolicyStatement({
+            // UserSeeder.ts crea usuarios reales en Cognito, no solo en Postgres. Solo se otorga
+            // AdminCreateUser porque es lo único que el seed invoca hoy.
+            actions: ["cognito-idp:AdminCreateUser"],
+            resources: [props.userPool.userPoolArn],
         }));
 
         const dbSecret = secretsmanager.Secret.fromSecretNameV2(this, "DbSecretRef", `novaoms/${props.deployEnv}/db`);
