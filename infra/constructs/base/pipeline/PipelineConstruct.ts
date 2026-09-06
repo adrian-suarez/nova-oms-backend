@@ -59,6 +59,12 @@ export class PipelineConstruct extends Construct {
             environmentVariables:{
                 DEPLOY_ENV: {value: props.deployEnv},
                 AUTH_PROVIDER: {value: config.AUTH_PROVIDER},
+                // El seed corre fuera de Lambda (CodeBuild), donde APP_ENV nunca llega por
+                // otra vía. Sin él, Config.ts cae en Environment.LOCAL por default y
+                // PrismaClientFactory.ts omite el ssl option contra RDS Proxy — el proxy
+                // corta la conexión sin TLS y Prisma lo reporta como P1010 "access denied"
+                // en vez de un error de TLS explícito.
+                APP_ENV: {value: config.METADATA.APP_ENV},
             },
             cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM)
         });
