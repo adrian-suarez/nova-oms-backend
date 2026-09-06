@@ -4,28 +4,21 @@ import { Config } from "@shared/config/Config.js";
 import { Environment } from "@shared/config/Environment.js";
 import * as AWSXRayNS from "aws-xray-sdk-core";
 
-// aws-xray-sdk-core es CJS puro sin "exports" — bajo tsx (type:module) Node no
-// detecta captureAsyncFunc como named export y queda undefined; el fallback a
-// .default es necesario para que el seed y `pnpm dev` no rompan con
-// "captureAsyncFunc is not a function". Bajo esbuild (Lambda bundleada) el
-// import ya resuelve bien de por sí — este fallback no afecta ese camino.
+// aws-xray-sdk-core es CJS puro; bajo tsx, captureAsyncFunc no se detecta como
+// named export y queda undefined. Fallback a .default necesario para que el
+// seed y `pnpm dev` no rompan (esbuild/Lambda ya lo resuelve bien).
 const AWSXRay = ((AWSXRayNS as unknown as { default?: typeof AWSXRayNS }).default ?? AWSXRayNS);
 
 let prisma: PrismaClient | undefined;
 function createPrismaClient(config:Config){
-    // RDS Proxy exige TLS por default (DatabaseConstruct.ts no lo desactiva) y corta la conexión
-    // en texto plano ("TLS is required by the current configuration"). El sslmode en la connection
-    // string no es confiable con node-postgres — se pasa como opción explícita de pg.Pool acá.
-    // rejectUnauthorized:false porque RDS firma con una CA propia que Node no trae en su store de
-    // confianza por default; sigue siendo tráfico cifrado, solo no valida la cadena de certificado.
-    // El Postgres de Docker Compose local no tiene TLS configurado, por eso queda fuera en LOCAL.
+    // RDS Proxy exige TLS y sslmode en la URL no es confiable con node-postgres, así que se pasa
+    // como opción explícita de pg.Pool. rejectUnauthorized:false porque la CA de RDS no está en
+    // el store de confianza de Node (sigue siendo tráfico cifrado). Postgres local no usa TLS.
     const ssl = config.environment === Environment.LOCAL ? undefined : { rejectUnauthorized: false };
     const adapter = new PrismaPg({connectionString: config.dbUrl, ssl});
 
-    // Sin contexto real de Lambda, captureAsyncFunc solo registra "Missing AWS Lambda
-    // trace data" — inofensivo pero inunda la consola (una vez por query) en seed/
-    // pnpm dev. Se salta la instrumentación por completo fuera de Lambda real, no
-    // solo se silencia el log.
+    // Fuera de Lambda real, captureAsyncFunc solo loguea ruido por cada query —
+    // se salta la instrumentación entera en vez de solo silenciar el log.
     const isLambdaRuntime = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
     const client =  new PrismaClient({

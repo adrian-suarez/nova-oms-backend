@@ -10,13 +10,9 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts"
   },
   datasource: {
-    // `prisma migrate deploy` corre con el motor propio de Prisma (no con PrismaClientFactory.ts/
-    // pg), así que necesita su propio fix de TLS contra RDS Proxy (requireTLS por default en
-    // DatabaseConstruct.ts). A diferencia de node-postgres, el motor de Prisma sí respeta
-    // sslmode=require en la URL de forma confiable (semántica estilo libpq: cifra sin validar
-    // la cadena de certificado — suficiente para la CA propia de RDS). DEPLOY_ENV es la única
-    // señal de ambiente disponible acá (la setea PipelineConstruct.ts en el CodeBuild de
-    // MigrateAndSeed); sin ella (migraciones locales contra Docker Compose) no se agrega SSL.
+    // `prisma migrate deploy` usa el motor propio de Prisma, no PrismaClientFactory.ts — necesita
+    // su propio fix de TLS contra RDS Proxy. A diferencia de node-postgres, acá sslmode=require en
+    // la URL sí funciona de forma confiable. Sin DEPLOY_ENV (migraciones locales) no se agrega SSL.
     url: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}${
       process.env.DEPLOY_ENV && process.env.DEPLOY_ENV !== "local" ? "?sslmode=require" : ""
     }`,

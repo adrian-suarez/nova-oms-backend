@@ -16,11 +16,9 @@ interface CognitoJwtPayload{
     [key:string]: unknown;
 }
 
-// La policy (cockatiel: circuit breaker + retry + timeout) envuelve login/refresh/
-// logout, que llaman a Cognito por red. authenticate() queda deliberadamente fuera:
-// verifica el JWT localmente (this.verifier.verify), sin llamada remota que proteger
-// — envolverlo agregaría reintentos inútiles y contaminaría el breaker compartido con
-// fallos de tokens inválidos/expirados que no son fallos de Cognito. Ver ADR-0009.
+// La policy envuelve login/refresh/logout (llamadas de red a Cognito). authenticate()
+// queda fuera: verifica el JWT localmente, sin red que proteger — envolverlo mezclaría
+// fallos de tokens inválidos con fallos reales de Cognito en el breaker. Ver ADR-0009.
 export class CognitoAuthenticationProviderImpl implements AuthenticationProvider{
 
     private _verifier?: CognitoJwtVerifierSingleUserPool<{
@@ -29,12 +27,9 @@ export class CognitoAuthenticationProviderImpl implements AuthenticationProvider
             tokenUse: "access"
         }>;
 
-    // Lazy a propósito: `Bootstrap.ts` construye este provider de forma incondicional para
-    // toda Lambda que lo importe (composition root único), incluidas las que nunca llaman a
-    // authenticate() — como el worker del outbox, que no recibe AWS_COGNITO_USER_POOL_ID/
-    // CLIENT_ID porque no los necesita. Construir el verifier en el constructor rompía el
-    // cold start entero de esas Lambdas con "Cannot read properties of undefined (reading
-    // 'match')" dentro de CognitoJwtVerifier, antes de que corriera una sola línea del handler.
+    // Lazy a propósito: Bootstrap.ts construye este provider para toda Lambda que lo importe,
+    // incluidas las que nunca llaman a authenticate() (ej. el worker del outbox, sin env vars
+    // de Cognito). Construirlo en el constructor rompía el cold start de esas Lambdas.
     private get verifier() {
         if(!this._verifier){
             this._verifier = CognitoJwtVerifier.create({
