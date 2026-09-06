@@ -9,9 +9,9 @@
         "@aws-cdk/core:newStyleStackSynthesis":true,
         "env":"dev",
         "pipeline":{
-            "GITHUB_CONNECTION_ARN":"",
-            "GITHUB_OWNER":"adriansuarez",
-            "GITHUB_REPO":"nova-oms"
+            "GITHUB_CONNECTION_ARN":"arn:aws:codeconnections:us-east-1:911788523797:connection/80b81b5d-7a7d-483e-9a03-102595a6eac6",
+            "GITHUB_OWNER":"adrian-suarez",
+            "GITHUB_REPO":"nova-oms-backend"
         },
         "prod":{
             "LOGGER_PROVIDER":"powertools",
@@ -27,6 +27,8 @@
             "AWS_S3_MAX_FILE_SIZE": "10485760",
             "AWS_S3_ALLOWED_EXTENSIONS": "pdf,png,jpg,jpeg,doc,docx,xlsx,xls",
             "AWS_S3_ALLOWED_CONTENT_TYPES": "application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "CORS_ORIGINS":["*"],
+            "LAMBDA_RESERVED_CONCURRENCY": 50,
 
             "TAGS": {
                 "Application": "nova-oms-prod",
@@ -43,10 +45,8 @@
             
         },
         "dev":{
-            "LOGGER_PROVIDER":"console",
+            "LOGGER_PROVIDER":"powertools",
             "DB_USER":"nova",
-            "DB_PASSWORD":"nova",
-            "DB_HOST":"192.168.20.103:5432",
             "DB_NAME":"nova_oms",
 
             "AUTH_PROVIDER":"cognito",
@@ -54,14 +54,13 @@
             "JWT_REFRESH_TOKEN_DAYS":"1",
             "JWT_EXPIRATION_TIME":"24",
 
-            "AWS_ENDPOINT_URL":"http://192.168.20.103:4566",
-
             "AWS_S3_EXPIRATION": "300",
             "AWS_S3_MAX_FILE_SIZE": "10485760",
             "AWS_S3_ALLOWED_EXTENSIONS": "pdf,png,jpg,jpeg,doc,docx,xlsx,xls",
             "AWS_S3_ALLOWED_CONTENT_TYPES": "application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 
             "AWS_S3_FORCE_PATH_STYLE":"true",
+            "CORS_ORIGINS":["*"],
 
             "TAGS": {
                 "Application": "nova-oms",
@@ -81,8 +80,6 @@
             
             "LOGGER_PROVIDER":"powertools",
             "DB_USER":"novaoms_qa",
-            "DB_PASSWORD":"nova",
-            "DB_HOST":"192.168.80.13:5432",
             "DB_NAME":"nova_oms_qa",
 
             "AUTH_PROVIDER":"local",
@@ -90,20 +87,18 @@
             "JWT_REFRESH_TOKEN_DAYS":"1",
             "JWT_EXPIRATION_TIME":"24",
 
-            
-            "AWS_ENDPOINT_URL":"http://192.168.20.103:4566",
-
             "AWS_S3_EXPIRATION": "300",
             "AWS_S3_MAX_FILE_SIZE": "10485760",
             "AWS_S3_ALLOWED_EXTENSIONS": "pdf,png,jpg,jpeg,doc,docx,xlsx,xls",
             "AWS_S3_ALLOWED_CONTENT_TYPES": "application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             
+            "CORS_ORIGINS":["*"],
             "AWS_S3_FORCE_PATH_STYLE":"true",
 
             "TAGS": {
                 "Application": "nova-oms",
                 "Owner": "Adrian Suarez",
-                "Environment": "QA"
+                "Environment": "qa"
             },
             "METADATA":{
                 "APP_NAME": "nova-oms",

@@ -36,7 +36,12 @@ export class NodeLambdaFactory{
             vpc:props.vpc,
             securityGroups:props.securityGroups,
 
-            memorySize: props.memorySize ?? 128, //256
+            // 128MB (el mínimo de Lambda) no alcanza para una función que carga Prisma Client +
+            // el motor de queries + jose/bcryptjs + instrumentación de X-Ray — confirmado con un
+            // Runtime.OutOfMemory real en AuthLambda contra RDS Proxy real. 256MB es el default
+            // razonable mínimo recomendado para Lambdas con Prisma; subir a 512 si algún endpoint
+            // sigue quedándose sin memoria.
+            memorySize: props.memorySize ?? 256,
             timeout: cdk.Duration.seconds(props.timeout ?? 15), //30
             entry: path.resolve(props.entry),
             handler:"handler",
@@ -44,9 +49,15 @@ export class NodeLambdaFactory{
                 ...config.METADATA,
                 ...props.environment           
             },
-            tracing:lambda.Tracing.ACTIVE, 
+            tracing:lambda.Tracing.ACTIVE,
 
-            reservedConcurrentExecutions:50,
+            // Mitigación complementaria a RDS Proxy (ADR-0011): limita el techo de invocaciones
+            // concurrentes por Lambda. Configurable por ambiente (LAMBDA_RESERVED_CONCURRENCY en
+            // cdk.json) en vez de fijo en 50 — cuentas AWS nuevas arrancan con una cuota total de
+            // concurrencia mucho más baja que el default de 1000, y reservar 50 por cada una de las
+            // 23 Lambdas puede superarla antes de llegar al mínimo de 10 sin reservar que exige AWS.
+            // Sin el valor en el contexto, no se reserva nada (deploy nunca bloqueado por esto).
+            reservedConcurrentExecutions: config.LAMBDA_RESERVED_CONCURRENCY,
             depsLockFilePath: path.resolve("pnpm-lock.yaml"),    //building reproducible
             bundling: { 
                 target:"node24",        // version node para transpilar codigo

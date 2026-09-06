@@ -13,7 +13,14 @@ const AWSXRay = ((AWSXRayNS as unknown as { default?: typeof AWSXRayNS }).defaul
 
 let prisma: PrismaClient | undefined;
 function createPrismaClient(config:Config){
-    const adapter = new PrismaPg({connectionString: config.dbUrl});
+    // RDS Proxy exige TLS por default (DatabaseConstruct.ts no lo desactiva) y corta la conexión
+    // en texto plano ("TLS is required by the current configuration"). El sslmode en la connection
+    // string no es confiable con node-postgres — se pasa como opción explícita de pg.Pool acá.
+    // rejectUnauthorized:false porque RDS firma con una CA propia que Node no trae en su store de
+    // confianza por default; sigue siendo tráfico cifrado, solo no valida la cadena de certificado.
+    // El Postgres de Docker Compose local no tiene TLS configurado, por eso queda fuera en LOCAL.
+    const ssl = config.environment === Environment.LOCAL ? undefined : { rejectUnauthorized: false };
+    const adapter = new PrismaPg({connectionString: config.dbUrl, ssl});
 
     // Sin contexto real de Lambda, captureAsyncFunc solo registra "Missing AWS Lambda
     // trace data" — inofensivo pero inunda la consola (una vez por query) en seed/
