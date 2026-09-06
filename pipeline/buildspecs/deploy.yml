@@ -10,4 +10,4 @@ phases:
       - npm install -g aws-cdk
   build:
     commands:
-      - cdk deploy --app . NovaOmsApiStack --require-approval never -c env=$DEPLOY_ENV
+      - cdk deploy --app "$CODEBUILD_SRC_DIR_BuildOutput" NovaOmsApiStack --require-approval never -c env=$DEPLOY_ENV

@@ -111,7 +111,13 @@ export class PipelineConstruct extends Construct {
                         new actions.CodeBuildAction({
                             actionName:"CDK_Deploy",
                             project: deployProject,
-                            input: buildOutput
+                            // El buildspec (deploy.yml) vive en el código fuente, no en el
+                            // artefacto de Build (que solo trae cdk.out/) — CodeBuild busca el
+                            // buildspec en el input PRIMARIO, así que la fuente cruda tiene que
+                            // ser el input principal. El cdk.out sintetizado llega como input
+                            // secundario, accesible en $CODEBUILD_SRC_DIR_BuildOutput.
+                            input: sourceOutput,
+                            extraInputs: [buildOutput]
                         })
                     ]
                 },{
