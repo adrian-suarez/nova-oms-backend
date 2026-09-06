@@ -1,12 +1,16 @@
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 
+export interface NetworkConstructProps {
+    dbPubliclyAccessible: boolean;
+}
+
 export class NetworkConstruct extends Construct{
     readonly vpc: ec2.Vpc;
     readonly lambdaSecurityGroup: ec2.SecurityGroup;
     readonly dbSecurityGroup: ec2.SecurityGroup;
 
-    constructor(scope:Construct, id:string){
+    constructor(scope:Construct, id:string, props:NetworkConstructProps){
         super(scope, id);
 
         const az = ["us-east-1a", "us-east-1b"];
@@ -39,6 +43,16 @@ export class NetworkConstruct extends Construct{
             ec2.Port.tcp(5432),
             "Solo lambdas del stack pueden conectarse a la DB"
         );
+
+        // Solo para dev, cuando DB_PUBLICLY_ACCESSIBLE está en true (cdk.json) — acceso directo
+        // a Postgres desde cualquier IP para depurar sin pasar por la VPC. Nunca en prod.
+        if(props.dbPubliclyAccessible){
+            this.dbSecurityGroup.addIngressRule(
+                ec2.Peer.anyIpv4(),
+                ec2.Port.tcp(5432),
+                "Development - PostgreSQL public access",
+            );
+        }
 
     }
 }

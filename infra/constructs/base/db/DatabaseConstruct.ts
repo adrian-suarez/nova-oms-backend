@@ -9,6 +9,7 @@ export interface DBConstructProps {
     securityGroup: ec2.SecurityGroup;
     dbSecret: sm.Secret;
     databaseName: string;
+    publiclyAccessible: boolean;
 }
 
 export class DatabaseConstruct extends Construct {
@@ -21,12 +22,19 @@ export class DatabaseConstruct extends Construct {
 
         const env = this.node.tryGetContext("env") ?? "dev";
 
+        // DB pública es solo para depurar en dev — nunca en prod, aunque el context se
+        // configure mal por error.
+        if(env === "prod" && props.publiclyAccessible){
+            throw new Error("publiclyAccessible no puede estar en true para el ambiente prod");
+        }
+
         this.instance = new rds.DatabaseInstance(this,"NovaOmsDB",{
             engine: rds.DatabaseInstanceEngine.postgres({version:rds.PostgresEngineVersion.VER_17}),
             instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
             vpc: props.vpc,
-            vpcSubnets: {subnetType:ec2.SubnetType.PRIVATE_ISOLATED},
+            vpcSubnets: {subnetType: props.publiclyAccessible ? ec2.SubnetType.PUBLIC : ec2.SubnetType.PRIVATE_ISOLATED},
             securityGroups:[props.securityGroup],
+            publiclyAccessible: props.publiclyAccessible,
             credentials: rds.Credentials.fromSecret(props.dbSecret),
             databaseName: props.databaseName,
             allocatedStorage: 20,

@@ -38,7 +38,9 @@ export class ApiStack extends cdk.Stack {
         //Config: secret manager, ssm
         const configConstruct = new ConfigConstruct(this,"Config");
         //Network
-        const networkConstruct = new NetworkConstruct(this,"Network");
+        const networkConstruct = new NetworkConstruct(this,"Network",{
+            dbPubliclyAccessible: config.DB_PUBLICLY_ACCESSIBLE ?? false
+        });
         this.vpc = networkConstruct.vpc;
         this.securityGroups = [networkConstruct.lambdaSecurityGroup];
         const lambdaNetwork = {
@@ -54,7 +56,8 @@ export class ApiStack extends cdk.Stack {
                 vpc: networkConstruct.vpc,
                 securityGroup: networkConstruct.dbSecurityGroup,
                 dbSecret: configConstruct.dbSecret,
-                databaseName: configConstruct.dbNameParameter.stringValue
+                databaseName: configConstruct.dbNameParameter.stringValue,
+                publiclyAccessible: config.DB_PUBLICLY_ACCESSIBLE ?? false
             });
             const db_host = `${databaseConstruct.proxy.endpoint}:${databaseConstruct.instance.dbInstanceEndpointPort}`;
             configConstruct.setDbHostProperty("DB_HOST", db_host, env);
