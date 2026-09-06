@@ -30,6 +30,7 @@
             "AWS_S3_ALLOWED_CONTENT_TYPES": "application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "CORS_ORIGINS":["*"],
             "LAMBDA_RESERVED_CONCURRENCY": 50,
+            "DB_PUBLICLY_ACCESSIBLE": false,
 
             "TAGS": {
                 "Application": "nova-oms-prod",
@@ -62,6 +63,7 @@
 
             "AWS_S3_FORCE_PATH_STYLE":"true",
             "CORS_ORIGINS":["*"],
+            "DB_PUBLICLY_ACCESSIBLE": true,
 
             "TAGS": {
                 "Application": "nova-oms",
@@ -95,6 +97,7 @@
             
             "CORS_ORIGINS":["*"],
             "AWS_S3_FORCE_PATH_STYLE":"true",
+            "DB_PUBLICLY_ACCESSIBLE": false,
 
             "TAGS": {
                 "Application": "nova-oms",
