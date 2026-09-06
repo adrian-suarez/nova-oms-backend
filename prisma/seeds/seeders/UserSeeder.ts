@@ -16,6 +16,12 @@ export class UserSeeder {
     for (const user of UserCatalog) {
       const roleId = roleMap.get(user.role);
 
+      // El pipeline corre este seed en cada push a develop (MigrateAndSeed), no solo una vez —
+      // el upsert de Postgres es idempotente, pero identityManagementProvider.create() no lo es:
+      // Cognito tira error si el usuario ya existe. Se chequea existencia ANTES del upsert para
+      // solo intentar crear en Cognito a los usuarios realmente nuevos.
+      const existing = await this.prisma.user.findUnique({ where: { email: user.email } });
+
       const created = await this.prisma.user.upsert({
         where: { email: user.email},
         update: {},
@@ -30,7 +36,7 @@ export class UserSeeder {
         },
       });
 
-      if(this.identityManagementProvider){
+      if(this.identityManagementProvider && !existing){
         const realUser = new User(
           created.id,
           created.email,
