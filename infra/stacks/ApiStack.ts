@@ -79,8 +79,8 @@ export class ApiStack extends cdk.Stack {
         const health = new HealthConstruct(this, "Health",lambdaNetwork);
         const auth = new AuthConstruct(this, "Auth",configConstruct, cognitoConstruct,lambdaNetwork);
         const user = new UsersConstruct(this, "User",configConstruct,eventBusConstruct,cognitoConstruct,lambdaNetwork);
-        const role = new RolesConstruct(this, "Role",configConstruct,lambdaNetwork);
-        const attachment = new AttachmentsConstruct(this, "Attachment",configConstruct,s3Construct,eventBusConstruct,lambdaNetwork);
+        const role = new RolesConstruct(this, "Role",configConstruct,cognitoConstruct,lambdaNetwork);
+        const attachment = new AttachmentsConstruct(this, "Attachment",configConstruct,s3Construct,eventBusConstruct,cognitoConstruct,lambdaNetwork);
         const notifications = new NotificationsConstruct(this, "Notification",configConstruct,eventBusConstruct,sesConstruct,lambdaNetwork);
 
         

@@ -26,30 +26,37 @@ export class UsersConstruct extends Construct {
     ){
         super(scope,id);
 
+        // Authentication (JWT) requiere userPoolId/clientId aunque el handler nunca llame a la
+        // API admin de Cognito — AuthenticationBehavior verifica el token en toda request con
+        // authenticated:true. Sin esto, authenticate() fallaba con "Invalid token" incluso para
+        // un token válido, porque CognitoJwtVerifier nunca tenía el userPoolId real.
         this.getCurrentUserLambdaFunction = NodeLambdaFactory.create(this,"GetCurrentUserLambda",{
             entry:"src/lambdas/users/current.ts",
-            environment:configConstruct.getLambdaEnv(),
+            environment:{...configConstruct.getLambdaEnv(), ...cognitoConstruct.getLambdaEnv()},
             vpc: lambdaNetworkConfig.vpc,
             securityGroups: lambdaNetworkConfig.securityGroups
         });
         configConstruct.grantReadConfig(this.getCurrentUserLambdaFunction);
+        cognitoConstruct.grantReadConfig(this.getCurrentUserLambdaFunction);
 
         this.getUserLambdaFunction = NodeLambdaFactory.create(this,"GetUserLambda",{
             entry:"src/lambdas/users/get.ts",
-            environment: configConstruct.getLambdaEnv(),
+            environment: {...configConstruct.getLambdaEnv(), ...cognitoConstruct.getLambdaEnv()},
             vpc: lambdaNetworkConfig.vpc,
             securityGroups: lambdaNetworkConfig.securityGroups
         });
         configConstruct.grantReadConfig(this.getUserLambdaFunction);
+        cognitoConstruct.grantReadConfig(this.getUserLambdaFunction);
 
         this.getUsersLambdaFunction = NodeLambdaFactory.create(this,"GetUsersLambda",{
             entry:"src/lambdas/users/list.ts",
-            environment: configConstruct.getLambdaEnv(),
+            environment: {...configConstruct.getLambdaEnv(), ...cognitoConstruct.getLambdaEnv()},
             vpc: lambdaNetworkConfig.vpc,
             securityGroups: lambdaNetworkConfig.securityGroups
         });
 
         configConstruct.grantReadConfig(this.getUsersLambdaFunction);
+        cognitoConstruct.grantReadConfig(this.getUsersLambdaFunction);
 
         this.createUserLambdaFunction = NodeLambdaFactory.create(this,"CreateUserLambda",{
             entry:"src/lambdas/users/create.ts",

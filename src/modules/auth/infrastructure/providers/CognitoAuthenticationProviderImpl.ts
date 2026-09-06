@@ -23,23 +23,34 @@ interface CognitoJwtPayload{
 // fallos de tokens inválidos/expirados que no son fallos de Cognito. Ver ADR-0009.
 export class CognitoAuthenticationProviderImpl implements AuthenticationProvider{
 
-    readonly verifier: CognitoJwtVerifierSingleUserPool<{
+    private _verifier?: CognitoJwtVerifierSingleUserPool<{
             userPoolId: string
             clientId: string,
             tokenUse: "access"
         }>;
 
+    // Lazy a propósito: `Bootstrap.ts` construye este provider de forma incondicional para
+    // toda Lambda que lo importe (composition root único), incluidas las que nunca llaman a
+    // authenticate() — como el worker del outbox, que no recibe AWS_COGNITO_USER_POOL_ID/
+    // CLIENT_ID porque no los necesita. Construir el verifier en el constructor rompía el
+    // cold start entero de esas Lambdas con "Cannot read properties of undefined (reading
+    // 'match')" dentro de CognitoJwtVerifier, antes de que corriera una sola línea del handler.
+    private get verifier() {
+        if(!this._verifier){
+            this._verifier = CognitoJwtVerifier.create({
+                userPoolId: this.config.cognitoUserPoolId,
+                clientId: this.config.cognitoClientId,
+                tokenUse: "access"
+            });
+        }
+        return this._verifier;
+    }
+
     constructor(readonly cognito: CognitoIdentityProviderClient,
         readonly config:Config,
         readonly policy:IPolicy,
         readonly metrics: Metrics
-    ){
-        this.verifier = CognitoJwtVerifier.create({
-            userPoolId: config.cognitoUserPoolId,
-            clientId: config.cognitoClientId,
-            tokenUse: "access"
-        });
-    }
+    ){}
 
     async login(request: LoginRequest): Promise<AuthenticationResponse> {
         const start = Date.now();
