@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as cognito from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { HttpApiConstruct } from "../constructs/base/api/HttpApiConstruct.js";
 import { HealthConstruct } from "../constructs/modules/health/HealthConstruct.js";
@@ -28,6 +29,7 @@ export class ApiStack extends cdk.Stack {
 
     readonly vpc: ec2.Vpc;
     readonly securityGroups: ec2.ISecurityGroup[];
+    readonly userPool: cognito.UserPool;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
@@ -59,6 +61,7 @@ export class ApiStack extends cdk.Stack {
         }
         //Cognito
         const cognitoConstruct = new CognitoConstruct(this,"Cognito");
+        this.userPool = cognitoConstruct.userPool;
         //s3
         const s3Construct = new S3Construct(this,"S3");
         //EventBridge EventBus
