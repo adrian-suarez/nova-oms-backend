@@ -1,6 +1,13 @@
 import { circuitBreaker, ConsecutiveBreaker, handleAll, retry, ExponentialBackoff, wrap, IPolicy, handleWhen, timeout, TimeoutStrategy, CircuitState, BrokenCircuitError } from "cockatiel";
 import {Metrics, MetricUnit} from "@aws-lambda-powertools/metrics"
-import * as AWSXRay from "aws-xray-sdk-core";
+import * as AWSXRayNS from "aws-xray-sdk-core";
+
+// aws-xray-sdk-core es CJS puro sin "exports" — bajo tsx (type:module) Node no
+// detecta getSegment como named export y queda undefined; el fallback a
+// .default es necesario para que el seed y `pnpm dev` no rompan con
+// "getSegment is not a function". Bajo esbuild (Lambda bundleada) el import
+// ya resuelve bien de por sí — este fallback no afecta ese camino.
+const AWSXRay = ((AWSXRayNS as unknown as { default?: typeof AWSXRayNS }).default ?? AWSXRayNS);
 
 export interface ResiliencePolicyConfig{
     consecutiveFailures?:number;
