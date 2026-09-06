@@ -4,10 +4,10 @@ phases:
 
   install:
     runtime-versions:
-      nodejs:24
+      nodejs: 24
     commands:
       - corepack enable
       - npm install -g aws-cdk
   build:
     commands:
-      - cdk deploy --app cdk.out --require-approval never -c env=$DEPLOY_ENV
+      - cdk deploy --app . NovaOmsApiStack --require-approval never -c env=$DEPLOY_ENV
