@@ -7,7 +7,8 @@ phases:
     commands:
       - corepack enable
       - pnpm install --frozen-lockfile
-    
+      - pnpm exec prisma generate
+
   build:
     commands:
       - pnpm typecheck
@@ -19,3 +20,7 @@ artifacts:
   base-directory: cdk.out
   files:
     - '**/**'
+
+cache:
+  paths:
+    - '.pnpm-store/**/*'

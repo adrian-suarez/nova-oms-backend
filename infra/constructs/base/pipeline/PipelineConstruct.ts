@@ -26,7 +26,11 @@ export class PipelineConstruct extends Construct {
 
         const buildProject = new codebuild.PipelineProject(this,"BuildProject",{
             buildSpec: codebuild.BuildSpec.fromSourceFilename("pipeline/buildspecs/build.yml"),
-            environment: { buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_5}
+            environment: { buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_5},
+            // Cachea el store de pnpm (fijado a .pnpm-store por .npmrc) entre corridas del mismo
+            // build host — evita descargar todo de cero en cada push. Best-effort: si CodeBuild
+            // asigna un host distinto, simplemente no hay cache hit, no rompe nada.
+            cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM)
         });
 
         const deployProject = new codebuild.PipelineProject(this,"DeployProject",{
@@ -55,7 +59,8 @@ export class PipelineConstruct extends Construct {
             environmentVariables:{
                 DEPLOY_ENV: {value: props.deployEnv},
                 AUTH_PROVIDER: {value: config.AUTH_PROVIDER},
-            }
+            },
+            cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM)
         });
 
         migrateProject.addToRolePolicy(new iam.PolicyStatement({

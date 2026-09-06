@@ -18,7 +18,12 @@ phases:
     commands:
       - corepack enable
       - pnpm install --frozen-lockfile
+      - pnpm exec prisma generate
   build:
     commands:
       - pnpm exec prisma migrate deploy
       - pnpm exec tsx prisma/seed.ts
+
+cache:
+  paths:
+    - '.pnpm-store/**/*'
