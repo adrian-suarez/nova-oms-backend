@@ -25,7 +25,7 @@ export class IdempotencyBehavior implements PipelineBehavior<APIGatewayProxyEven
             return next();
         }
 
-        const idempotencyKey = event.headers["Idempotency-Key"];
+        const idempotencyKey = event.headers["idempotency-key"];
 
         if(!idempotencyKey){
             throw new ValidationError("Idempotency-Key is missing");

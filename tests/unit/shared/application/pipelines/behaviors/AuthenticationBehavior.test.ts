@@ -41,7 +41,7 @@ describe("AuthenticationBehavior",()=>{
     it("reject if authenticationProvider rejects the token",async()=>{
        const {behavior, authenticationProvider} = makeBehavior();
         authenticationProvider.authenticate.mockRejectedValue(new UnauthorizedError("Invalid Token"));
-        const event = {headers:{Authorization:"Bearer invalid-token"}} as unknown as APIGatewayProxyEventV2;
+        const event = {headers:{authorization:"Bearer invalid-token"}} as unknown as APIGatewayProxyEventV2;
 
         await expect(behavior.handle(descriptor,
             event,
@@ -58,7 +58,7 @@ describe("AuthenticationBehavior",()=>{
             new AuthenticatedUser("user-1","user@novaoms.com","Test", "User",[],[])
         );
 
-        const event = { headers: {Authorization:"Bearer valid-token"}} as unknown as APIGatewayProxyEventV2;
+        const event = { headers: {authorization:"Bearer valid-token"}} as unknown as APIGatewayProxyEventV2;
         const next = vi.fn().mockResolvedValue(nextResult);
 
         const result = await behavior.handle(descriptor, event,{} as Context, next);

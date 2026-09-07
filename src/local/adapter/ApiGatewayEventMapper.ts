@@ -18,10 +18,6 @@ export class ExpressToApiGatewayEvent {
               ])
           )
         : undefined;
-    if(headers!=undefined){
-        headers["Authorization"]=headers["authorization"]!;
-    }
-    
     return {
       version: "2.0",
       routeKey: "",

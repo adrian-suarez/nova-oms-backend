@@ -20,7 +20,7 @@ export class AuthenticationBehavior implements PipelineBehavior<APIGatewayProxyE
         
         const request = this.executionContextProvider.get();
 
-        const auth = event.headers?.["Authorization"];
+        const auth = event.headers?.["authorization"];
         
         if(auth == null || auth == undefined || !auth.startsWith("Bearer ")){
             throw new UnauthorizedError("Unauthorized");
