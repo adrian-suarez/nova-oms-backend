@@ -79,9 +79,9 @@ export class PipelineConstruct extends Construct {
         }));
 
         migrateProject.addToRolePolicy(new iam.PolicyStatement({
-            // UserSeeder.ts crea usuarios reales en Cognito, no solo en Postgres. Solo se otorga
-            // AdminCreateUser porque es lo único que el seed invoca hoy.
-            actions: ["cognito-idp:AdminCreateUser"],
+            // UserSeeder.ts crea usuarios reales en Cognito y les fija el password inicial
+            // (AdminCreateUserCommand + AdminSetUserPasswordCommand dentro de .create()).
+            actions: ["cognito-idp:AdminCreateUser", "cognito-idp:AdminSetUserPassword"],
             resources: [props.userPool.userPoolArn],
         }));
 
