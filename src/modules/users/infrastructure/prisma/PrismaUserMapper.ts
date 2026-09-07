@@ -34,6 +34,7 @@ export function toUserEntity(data: UserModelWithRoleModel | UserModel): User{
     data.createdAt,
     data.updatedAt,
     data.deletedAt,
-    data.password
+    data.password,
+    data.cognitoSub
   );
 }

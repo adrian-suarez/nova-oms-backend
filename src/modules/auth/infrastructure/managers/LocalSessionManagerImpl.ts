@@ -21,7 +21,7 @@ export class LocalSessionManagerImpl implements SessionManager{
     ){}
    
     async create(user: UserIdentity): Promise<AuthenticationResponse> {
-        const accessToken = await this.jwtService.generate({sub: user.sub, email:user.email});
+        const accessToken = await this.jwtService.generate({sub: user.sub, email:user.email!});
         const refreshSecret = await this.refreshTokenService.generate();
         const refreshHash = await this.refreshTokenService.hash(refreshSecret);
         const sessionId = crypto.randomUUID();

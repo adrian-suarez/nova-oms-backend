@@ -47,7 +47,12 @@ export class CreateUserUseCase implements UseCase<CreateUserRequest,UserDetailRe
                     await this.userRoleRepository.assignMany(user.id,new Set(roles.map(r=>r.id)));
                 }  
             },
-            externalSync: async ()=> this.identityManagementProvider.create(externalUser),
+            externalSync: async ()=> {
+                const cognitoSub = await this.identityManagementProvider.create(externalUser);
+                if(cognitoSub){
+                    await this.userRepository.setCognitoSub(user.id, cognitoSub);
+                }
+            },
             compensate: async ()=>{
                 await this.userRepository.delete(user.id, true);
             }

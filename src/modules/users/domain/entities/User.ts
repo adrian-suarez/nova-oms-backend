@@ -34,6 +34,7 @@ export class User extends AggregateRoot {
         public updatedAt?:Date| null,
         public deletedAt?:Date| null,
         public _password?:string | null,
+        public cognitoSub?:string | null,
     ){
         super();
     }

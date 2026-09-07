@@ -119,6 +119,13 @@ export class PrismaUserRepositoryImpl implements UserRepository {
     }
    
   }
+  async setCognitoSub(id: string, cognitoSub: string): Promise<void> {
+    await this.provider.getClient().user.update({
+      where: { id },
+      data: { cognitoSub }
+    });
+  }
+
   async delete(id: string, force?:boolean): Promise<void> {
 
     if(force){

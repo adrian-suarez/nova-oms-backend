@@ -12,5 +12,6 @@ export interface UserRepository{
     findByEmail(email:string):Promise<User|null>;
     findByEmailWithRole(email:string):Promise<User|null>;    
     delete(id:string, force?:boolean):Promise<void>;
+    setCognitoSub(id:string, cognitoSub:string):Promise<void>;
 
 }

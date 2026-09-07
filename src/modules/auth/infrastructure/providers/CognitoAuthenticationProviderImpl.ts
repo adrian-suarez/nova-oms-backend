@@ -84,13 +84,9 @@ export class CognitoAuthenticationProviderImpl implements AuthenticationProvider
     async authenticate(accessToken: string): Promise<UserIdentity> {
         try {
             const response = await this.verifier.verify(accessToken) as CognitoJwtPayload;
-            if(!response.email){
-                throw new UnauthorizedError("Token missing email")
-            }
 
             return {
-                sub: response.sub,
-                email: response.email
+                sub: response.sub
             };
         } catch {
             throw new UnauthorizedError("Invalid token");

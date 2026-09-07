@@ -2,7 +2,7 @@
 
 export interface UserIdentity{
     sub: string;
-    email: string;
+    email?: string;
 }
 export interface AuthenticationResponse{
 
