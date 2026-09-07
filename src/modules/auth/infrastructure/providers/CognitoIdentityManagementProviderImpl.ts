@@ -13,9 +13,9 @@ export class CognitoIdentityManagementProviderImpl implements IdentityManagement
     ){
     }
 
-    async create(user: User): Promise<void> {
+    async create(user: User): Promise<string> {
         try{
-            await this.policy.execute(()=>  this.cognito.send(new AdminCreateUserCommand({
+            const response = await this.policy.execute(()=>  this.cognito.send(new AdminCreateUserCommand({
                 UserPoolId: this.config.cognitoUserPoolId,
                 Username: user.email,
                 TemporaryPassword: user.password!,
@@ -36,6 +36,8 @@ export class CognitoIdentityManagementProviderImpl implements IdentityManagement
             })));
 
             await this.changePassword(user.email, user.password!);
+
+            return response.User!.Username!;
         }catch(error){
             if(error instanceof AliasExistsException){
                 throw new ExternalServiceError("COGNITO_EMAIL_ALREADY_EXIST","Email already exists",error);

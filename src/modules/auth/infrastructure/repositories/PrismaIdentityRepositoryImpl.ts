@@ -7,8 +7,8 @@ export class PrismaIdentityRepositoryImpl implements IdentityRepository {
   constructor(readonly provider: PrismaProvider) {}
 
   async load(user: UserIdentity): Promise<AuthenticatedUser> {
-    const entity = await this.provider.getClient().user.findUnique({
-      where: { email: user.email },
+    const entity = await this.provider.getClient().user.findFirst({
+      where: { OR: [{ id: user.sub }, { cognitoSub: user.sub }] },
       include: {
         roles: {
           include: {

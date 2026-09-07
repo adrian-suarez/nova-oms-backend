@@ -36,6 +36,7 @@ model User {
   lastName String
   status String //ACTIVE, PENDING,...
   email String @unique
+  cognitoSub String? @unique
   password String?
   roles UserRole[]
   enabled Boolean @default(true)

@@ -50,9 +50,16 @@ export class UserSeeder {
           "Nova*123",
         );
 
-        await this.identityManagementProvider.create(
+        const cognitoSub = await this.identityManagementProvider.create(
           realUser
         );
+
+        if(cognitoSub){
+          await this.prisma.user.update({
+            where: { id: created.id },
+            data: { cognitoSub }
+          });
+        }
       }
     }
   }

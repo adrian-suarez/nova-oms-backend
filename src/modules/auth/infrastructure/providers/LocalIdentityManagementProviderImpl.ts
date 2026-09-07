@@ -5,8 +5,8 @@ import { IdentityManagementProvider } from "@modules/auth/application/providers/
 export class LocalIdentityManagementProviderImpl implements IdentityManagementProvider{
     constructor(){}
   
-    async create(_: User): Promise<void> {
-
+    async create(_: User): Promise<string> {
+        return "";
     }
 
     async update(_: User): Promise<void> {
