@@ -10,7 +10,7 @@
         "@aws-cdk/core:defaultCrossStackReferences":"strong",
         "env":"dev",
         "pipeline":{
-            "GITHUB_CONNECTION_ARN":"arn:aws:codeconnections:us-east-1:911788523797:connection/80b81b5d-7a7d-483e-9a03-102595a6eac6",
+            "GITHUB_CONNECTION_ARN":"",
             "GITHUB_OWNER":"adrian-suarez",
             "GITHUB_REPO":"nova-oms-backend"
         },
@@ -42,7 +42,7 @@
                 "APP_VERSION": "1.0.0-RC1",
                 "APP_ENV": "production"
             },
-            "SES_EMAIL_ADDRESS":"adr.suarez66@gmail.com",
+            "SES_EMAIL_ADDRESS":"notificaciones@tudominio.com",
             "HTTP_API_GATEWAY_ALLOWED_ORIGINS": ["*"]
             
         },
@@ -75,7 +75,7 @@
                 "APP_VERSION": "1.0.0-RC1",
                 "APP_ENV": "development"
             },
-            "SES_EMAIL_ADDRESS":"adr.suarez66@gmail.com",
+            "SES_EMAIL_ADDRESS":"notificaciones@tudominio.com",
             "HTTP_API_GATEWAY_ALLOWED_ORIGINS": ["*"]
             
         },
@@ -109,7 +109,7 @@
                 "APP_VERSION": "1.0.0-RC1",
                 "APP_ENV": "qa"
             },
-            "SES_EMAIL_ADDRESS":"adr.suarez66@gmail.com",
+            "SES_EMAIL_ADDRESS":"notificaciones@tudominio.com",
             "HTTP_API_GATEWAY_ALLOWED_ORIGINS": ["*"]
 
         },
@@ -144,7 +144,7 @@
                 "APP_VERSION": "1.0.0-RC1",
                 "APP_ENV": "development"
             },
-            "SES_EMAIL_ADDRESS":"adr.suarez66@gmail.com",
+            "SES_EMAIL_ADDRESS":"notificaciones@tudominio.com",
             "HTTP_API_GATEWAY_ALLOWED_ORIGINS": ["*"]
             
         }
