@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Auth
+
+model UserSession {
+    @@map("user_sessions")
+    id String @id @default(uuid())
+    userId String 
+    refreshTokenHash String
+    device String?
+    ip String?
+    createdAt DateTime @default(now())
+    expiresAt DateTime
+    revokedAt DateTime?
+    user User @relation (fields:[userId], references: [id])
+}
+
+// User, Role and Permission
+
+model User {
+  @@map("users")
+  id String @id @default(uuid())
+  firstName String
+  lastName String
+  status String //ACTIVE, PENDING,...
+  email String @unique
+  cognitoSub String? @unique
+  password String?
+  roles UserRole[]
+  enabled Boolean @default(true)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+  attachments Attachment[]
+  sessions UserSession[]
+  history Audit[]
+  notifications Notification[]
+
+}
+
+model Role {
+  @@map("roles")
+  id String @id @default(uuid())
+  name String @unique
+  description String
+  permissions RolePermission[]
+  users UserRole[]
+  enabled Boolean @default(true)
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+}
+
+model Permission {
+  @@map("permissions")
+  id String @id @default(uuid())
+  name String @unique
+  description String
+  roles RolePermission[]
+}
+
+model UserRole {
+  @@map("users_roles")
+  userId String
+  roleId String
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  @@map("roles_permissions")
+  roleId String
+  permissionId String
+  role Role @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+  @@id([roleId,permissionId])
+}
+
+
+// Attachment
+
+model Attachment{
+  @@map("attachments")
+  id String @id @default(uuid())
+  fileName String 
+  contentType String 
+  extension String 
+  size BigInt 
+  bucket String 
+  key String @unique
+  status String 
+  visibility String 
+  resourceType String? 
+  resourceId String? 
+
+  ownerUserId String
+  ownerUserEmail String
+
+  ownerUser User @relation(fields: [ownerUserId], references: [id])
+  enabled Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+
+}
+
+// OutboxEvent
+
+model OutboxEvent {
+
+  @@map("outbox_events")
+  id String @id @default(uuid())
+  entityType String
+  entityId String
+  action String
+  payload Json
+  status String
+  retryCount Int
+  lastError String?
+  correlationId String
+  createdAt DateTime @default(now())
+  publishedAt DateTime?
+
+}
+
+// Audit
+
+model Audit{
+  @@map("audits")
+  id String @id @default(uuid())
+  userId String?
+  entityType String
+  entityId String?
+  action String
+  payload Json
+  outcome String
+  errorMessage String?
+  correlationId String
+  createdAt DateTime @default(now())
+  
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([userId])
+  @@index([createdAt])
+
+}
+
+
+
+// Notification
+
+model Notification{
+  @@map("notifications")
+
+  id String @id
+  type String
+  channel String
+  recipientUserId String
+  recipientUserEmail String
+  subject String
+  message String
+  status String
+  createdAt DateTime @default(now())
+  sentAt DateTime?
+  lastError String?
+  
+  recipientUser User @relation(fields: [recipientUserId], references: [id])
+
+  @@index([type])
+  @@index([channel])
+  @@index([recipientUserId])
+  @@index([createdAt])
+
+}
+
+model IdempotencyKey{
+  @@map("idempotency_keys")
+
+  id String @id
+  requestHash String
+  status String
+  statusCode Int?
+  responseBody Json?
+  createdAt DateTime @default(now())
+
+}

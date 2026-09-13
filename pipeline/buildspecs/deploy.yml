@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+
+  install:
+    runtime-versions:
+      nodejs: 24
+    commands:
+      - corepack enable
+      - npm install -g aws-cdk
+  build:
+    commands:
+      - cdk deploy --app "$CODEBUILD_SRC_DIR_BuildOutput" NovaOmsApiStack --require-approval never -c env=$DEPLOY_ENV

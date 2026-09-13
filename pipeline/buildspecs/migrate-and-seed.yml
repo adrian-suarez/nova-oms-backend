@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+
+  secrets-manager:
+    DB_USER: "novaoms/$DEPLOY_ENV/db:username"
+    DB_PASSWORD: "novaoms/$DEPLOY_ENV/db:password"
+  parameter-store:
+    DB_HOST: "/novaoms/$DEPLOY_ENV/db/host"
+    DB_NAME: "/novaoms/$DEPLOY_ENV/db/name"
+    AWS_COGNITO_USER_POOL_ID: "/novaoms/$DEPLOY_ENV/cognito/user_pool_id"
+    AWS_COGNITO_CLIENT_ID: "/novaoms/$DEPLOY_ENV/cognito/client_id"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 24
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+      - pnpm exec prisma generate
+  build:
+    commands:
+      - pnpm exec prisma migrate deploy
+      - pnpm exec tsx prisma/seed.ts
+
+cache:
+  paths:
+    - '.pnpm-store/**/*'

@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 24
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+      - pnpm exec prisma generate
+
+  build:
+    commands:
+      - pnpm typecheck
+      - pnpm lint
+      - pnpm test
+      - pnpm cdk:synth
+
+artifacts:
+  base-directory: cdk.out
+  files:
+    - '**/**'
+
+cache:
+  paths:
+    - '.pnpm-store/**/*'
